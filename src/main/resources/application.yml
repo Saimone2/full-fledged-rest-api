@@ -3,8 +3,23 @@ spring:
     name: BVP-Software-task
   datasource:
     url: jdbc:postgresql://localhost:5432/user_api
+    driver-class-name: org.postgresql.Driver
     username: postgres
     password: root
-    driver-class-name: org.postgresql.Driver
   jpa:
-    show-sql: true
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+application:
+  security:
+    jwt:
+      secret-key: 182b9e058ec60b5d271a0b77a697c5ace98ced588f6c6cdd13bc303f175274b5
+      expiration: 86400000
+      refresh-token:
+        expiration: 604800000

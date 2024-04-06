@@ -1,4 +1,4 @@
-package com.saimone.bvp_software_task.dto.response;
+package com.saimone.bvp_software_task.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

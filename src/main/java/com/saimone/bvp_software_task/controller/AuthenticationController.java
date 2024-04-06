@@ -1,27 +1,26 @@
 package com.saimone.bvp_software_task.controller;
 
-import com.saimone.bvp_software_task.dto.request.UserEntryRequest;
-import com.saimone.bvp_software_task.service.UserService;
+import com.saimone.bvp_software_task.dto.request.EntryRequest;
+import com.saimone.bvp_software_task.service.impl.AuthenticationServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController {
-    private final UserService userService;
+@RequiredArgsConstructor
+public class AuthenticationController {
 
-    public AuthController(UserService userService) {
-        this.userService = userService;
-    }
+    private final AuthenticationServiceImpl authenticationService;
 
     @PostMapping("/signup")
-    public ResponseEntity<Object> registration(@RequestBody UserEntryRequest request) {
-        return userService.register(request);
+    public ResponseEntity<Object> registration(@RequestBody EntryRequest request) {
+        return authenticationService.register(request);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestBody UserEntryRequest request) {
-        return userService.login(request);
+    public ResponseEntity<Object> authenticate(@RequestBody EntryRequest request) {
+        return authenticationService.login(request);
     }
 
     @GetMapping("/resend/email-confirmation/{email}")
