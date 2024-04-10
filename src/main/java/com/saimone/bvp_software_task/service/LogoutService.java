@@ -1,4 +1,4 @@
-package com.saimone.bvp_software_task.service.impl;
+package com.saimone.bvp_software_task.service;
 
 import com.saimone.bvp_software_task.repository.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class LogoutServiceImpl implements LogoutHandler {
+public class LogoutService implements LogoutHandler {
 
     private final TokenRepository tokenRepository;
 

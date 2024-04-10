@@ -16,6 +16,16 @@ spring:
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
+  mail:
+    host: smtp.ukr.net
+    port: 465
+    username: // your username
+    password: // your password
+    properties:
+      mail:
+        smtp:
+          auth: true
+
 application:
   security:
     jwt:

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 public class AuthenticationController {
 
     private final AuthenticationServiceImpl authenticationService;
@@ -25,12 +26,12 @@ public class AuthenticationController {
 
     @GetMapping("/resend/email-confirmation/{email}")
     public ResponseEntity<Object> resendEmailConfirm(@PathVariable String email) {
-        return null;
+        return authenticationService.resendEmailConfirm(email);
     }
 
     @GetMapping("/email-confirm/{token}")
     public ResponseEntity<Object> confirmEmail(@PathVariable String token) {
-        return null;
+        return authenticationService.confirmEmail(token);
     }
 
     @GetMapping("/send/reset-password-email/{email}")
