@@ -1,9 +1,12 @@
 package com.saimone.bvp_software_task.controller;
 
 import com.saimone.bvp_software_task.dto.request.EntryRequest;
+import com.saimone.bvp_software_task.handler.ValidationHandler;
 import com.saimone.bvp_software_task.service.impl.AuthenticationServiceImpl;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -15,12 +18,18 @@ public class AuthenticationController {
     private final AuthenticationServiceImpl authenticationService;
 
     @PostMapping("/signup")
-    public ResponseEntity<Object> registration(@RequestBody EntryRequest request) {
+    public ResponseEntity<Object> registration(@Valid @RequestBody EntryRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ValidationHandler.handleValidationErrors(bindingResult);
+        }
         return authenticationService.register(request);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Object> authenticate(@RequestBody EntryRequest request) {
+    public ResponseEntity<Object> authenticate(@Valid @RequestBody EntryRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ValidationHandler.handleValidationErrors(bindingResult);
+        }
         return authenticationService.login(request);
     }
 
@@ -36,11 +45,14 @@ public class AuthenticationController {
 
     @GetMapping("/send/reset-password-email/{email}")
     public ResponseEntity<Object> resetPasswordEmail(@PathVariable String email) {
-        return null;
+        return authenticationService.resetPasswordEmail(email);
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<Object> changePassword() {
-        return null;
+    public ResponseEntity<Object> changePassword(
+            @RequestParam(name="email") String email,
+            @RequestParam(name="token") String token
+    ) {
+        return authenticationService.changePassword(email, token);
     }
 }

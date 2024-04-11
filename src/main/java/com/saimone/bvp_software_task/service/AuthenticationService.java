@@ -13,4 +13,6 @@ public interface AuthenticationService {
     void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException;
     ResponseEntity<Object> confirmEmail(String token);
     ResponseEntity<Object> resendEmailConfirm(String email);
+    ResponseEntity<Object> resetPasswordEmail(String email);
+    ResponseEntity<Object> changePassword(String email, String token);
 }

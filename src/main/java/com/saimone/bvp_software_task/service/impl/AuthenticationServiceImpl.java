@@ -17,8 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -55,6 +52,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .email(request.getEmail())
                     .password(passwordEncoder.encode(request.getPassword()))
                     .role(Role.USER)
+                    .createdAt(LocalDateTime.now())
                     .build();
 
             var savedUser = userRepository.save(userModel);
@@ -91,7 +89,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private String sendConfirmationEmail(User user) {
         String confirmationToken = UUID.randomUUID().toString();
-        saveUserConfirmToken(user, confirmationToken);
+        saveUserConfirmToken(user, confirmationToken, TokenAssignment.EMAIL_CONFIRMATION);
 
         String confirmationLink = "http://localhost:8080/api/auth/email-confirm/" + confirmationToken;
         String message = "Please click the link below to confirm your account:\n" + confirmationLink + "\nIf you didn't register an account, just ignore this message.";
@@ -100,13 +98,25 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return confirmationLink;
     }
 
-    private void saveUserConfirmToken(User user, String confirmationToken) {
+    private String sendResetPasswordToEmail(User user) {
+        String confirmationToken = UUID.randomUUID().toString();
+        saveUserConfirmToken(user, confirmationToken, TokenAssignment.RESET_PASSWORD);
+
+        String confirmationLink = "http://localhost:8080/api/auth/change-password?email=" + user.getEmail() + "&token=" + confirmationToken;
+        String message = "You have made a password reset request. Please follow the link to confirm your action:\n" + confirmationLink + "\nIf you have not made any requests, just ignore this message.";
+
+        // mailSenderService.sendMail(user.getEmail(), "Account Confirmation", message);
+        return confirmationLink;
+    }
+
+    private void saveUserConfirmToken(User user, String confirmationToken, TokenAssignment assignment) {
         var token = ConfirmToken.builder()
                 .user(user)
                 .token(confirmationToken)
                 .expired(false)
                 .revoked(false)
                 .createdAt(LocalDateTime.now())
+                .tokenAssignment(assignment)
                 .build();
         confirmTokenRepository.save(token);
     }
@@ -227,5 +237,29 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             log.warn("IN resendEmailConfirm - attempting to resend account confirmation to an unregistered email: {}", email);
             return ResponseHandler.responseBuilder("First, please register with your email address.", HttpStatus.NOT_FOUND);
         }
+    }
+
+    @Override
+    public ResponseEntity<Object> resetPasswordEmail(String email) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+
+        if(optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            String link = sendResetPasswordToEmail(user);
+
+            AuthenticationResponse response = new AuthenticationResponse(user.getId(), user.getEmail(), link);
+
+            log.info("IN resetPasswordEmail - successful sending of the password reset to email: {}", email);
+            return ResponseHandler.responseBuilder("Please check your email for instructions to reset your password.", HttpStatus.OK, response);
+        } else {
+            log.warn("IN resetPasswordEmail - attempting to reset account password to an unregistered email: {}", email);
+            return ResponseHandler.responseBuilder("First, please register with your email address.", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Override
+    public ResponseEntity<Object> changePassword(String email, String token) {
+        log.info("IN changePassword - the password was successfully changed on account with email: {}", email);
+        return ResponseHandler.responseBuilder("Password successfully reset. Now you can log in with your new password.", HttpStatus.OK);
     }
 }

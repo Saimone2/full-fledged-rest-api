@@ -1,6 +1,5 @@
 package com.saimone.bvp_software_task.repository;
 
-import com.saimone.bvp_software_task.model.ConfirmToken;
 import com.saimone.bvp_software_task.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 

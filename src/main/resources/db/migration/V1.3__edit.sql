@@ -1,0 +1,5 @@
+ALTER TABLE "confirmation_tokens"
+ADD COLUMN assignment VARCHAR(50);
+
+ALTER TABLE "users"
+ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;

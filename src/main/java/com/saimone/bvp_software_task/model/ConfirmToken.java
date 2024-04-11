@@ -32,4 +32,8 @@ public class ConfirmToken {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "assignment")
+    public TokenAssignment tokenAssignment;
 }
