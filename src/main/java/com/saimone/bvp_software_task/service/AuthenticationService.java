@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 
+
 public interface AuthenticationService {
     ResponseEntity<Object> register(EntryRequest request);
     ResponseEntity<Object> login(EntryRequest request);

@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+
 public interface ConfirmTokenRepository extends JpaRepository<ConfirmToken, Long> {
     Optional<ConfirmToken> findByToken(String token);
 

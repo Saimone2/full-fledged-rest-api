@@ -4,7 +4,7 @@ server:
 spring:
   config:
     activate:
-      on-profile: production
+      on-profile: prod
   application:
     name: BVP-Software-task-Prod
   datasource:
@@ -21,14 +21,16 @@ spring:
       hibernate:
         format_sql: true
   mail:
-    host: smtp.bvp-software.com
-    port: 465
-    username: prod_username
-    password: prod_password
+    host: smtp.gmail.com
+    port: 587
+    username: prod@gmail.com
+    password: pass123
     properties:
       mail:
         smtp:
           auth: true
+          starttls:
+            enable: true
 
 application:
   security:

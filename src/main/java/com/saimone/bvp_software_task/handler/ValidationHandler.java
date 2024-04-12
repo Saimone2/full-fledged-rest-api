@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 public class ValidationHandler {
     public static ResponseEntity<Object> handleValidationErrors(BindingResult bindingResult) {
         List<FieldError> errors = bindingResult.getFieldErrors();

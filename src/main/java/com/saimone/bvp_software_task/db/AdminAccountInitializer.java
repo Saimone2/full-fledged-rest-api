@@ -8,12 +8,12 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+
 @Component
 public class AdminAccountInitializer implements CommandLineRunner {
 
     @Value("${application.admin.email}")
     private String adminEmail;
-
     @Value("${application.admin.password}")
     private String adminPassword;
 

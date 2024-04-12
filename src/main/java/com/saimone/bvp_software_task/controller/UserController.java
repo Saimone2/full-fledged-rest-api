@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+
     @PreAuthorize("hasAuthority('ADMIN') || hasAuthority('USER')")
     @GetMapping("/current-user")
     public ResponseEntity<Object> currentUser(@RequestHeader("Authorization") String bearerToken) {

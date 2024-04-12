@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Map;
 import java.util.function.Function;
 
+
 public interface JwtService {
     String generateToken(UserDetails userDetails);
 

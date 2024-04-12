@@ -140,13 +140,13 @@
             </properties>
         </profile>
         <profile>
-            <id>production</id>
+            <id>prod</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
-                <build.profile.id>production</build.profile.id>
-                <profile.activate>production</profile.activate>
+                <build.profile.id>prod</build.profile.id>
+                <profile.activate>prod</profile.activate>
             </properties>
         </profile>
     </profiles>

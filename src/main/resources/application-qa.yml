@@ -14,7 +14,7 @@ spring:
     password: qa_password
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     open-in-view: false
     show-sql: false
     properties:
@@ -22,13 +22,15 @@ spring:
         format_sql: true
   mail:
     host: smtp.gmail.com
-    port: 465
-    username: qa_username
-    password: qa_password
+    port: 587
+    username: qa@gmail.com
+    password: pass123
     properties:
       mail:
         smtp:
           auth: true
+          starttls:
+            enable: true
 
 application:
   security:

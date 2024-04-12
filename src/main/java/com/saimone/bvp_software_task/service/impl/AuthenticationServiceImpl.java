@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -118,7 +119,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String confirmationLink = "http://localhost:8080/api/auth/email-confirm/" + confirmationToken;
         String message = "Please click the link below to confirm your account:\n" + confirmationLink + "\nIf you didn't register an account, just ignore this message.";
 
-        // mailSenderService.sendMail(user.getEmail(), "Account Confirmation", message);
+        mailSenderService.sendMail(user.getEmail(), "Account Confirmation", message);
         return confirmationLink;
     }
 
@@ -128,7 +129,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         String message = "You have made a password reset request. Here is a token that can be used to reset your password:\n" + confirmationToken + "\nDo not disclose the token to anyone. If you have not made any requests, just ignore this message.";
 
-        // mailSenderService.sendMail(user.getEmail(), "Account Confirmation", message);
+        mailSenderService.sendMail(user.getEmail(), "Account Confirmation", message);
         return confirmationToken;
     }
 
