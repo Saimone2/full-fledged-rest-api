@@ -2,7 +2,9 @@ package com.saimone.bvp_software_task.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saimone.bvp_software_task.dto.request.EntryRequest;
+import com.saimone.bvp_software_task.dto.request.ResetPasswordRequest;
 import com.saimone.bvp_software_task.dto.response.AuthenticationResponse;
+import com.saimone.bvp_software_task.exception.*;
 import com.saimone.bvp_software_task.handler.ResponseHandler;
 import com.saimone.bvp_software_task.model.*;
 import com.saimone.bvp_software_task.repository.ConfirmTokenRepository;
@@ -12,18 +14,24 @@ import com.saimone.bvp_software_task.service.AuthenticationService;
 import com.saimone.bvp_software_task.service.MailSenderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,6 +40,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
 
+    private final ModelMapper mapper;
     private final MailSenderService mailSenderService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -40,51 +49,66 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final TokenRepository tokenRepository;
     private final ConfirmTokenRepository confirmTokenRepository;
 
+    @Value("${application.security.confirm-token.lifetime}")
+    private int confirmTokenLifetime;
+
     @Override
     public ResponseEntity<Object> register(EntryRequest request) {
         Optional<User> user = userRepository.findByEmail(request.getEmail());
 
-        if (user.isPresent()) {
-            log.warn("IN register - trying to register a previously existing email ({})", request.getEmail());
-            return ResponseHandler.responseBuilder("This email is already registered", HttpStatus.FORBIDDEN);
-        } else {
-            var userModel = User.builder()
-                    .email(request.getEmail())
-                    .password(passwordEncoder.encode(request.getPassword()))
-                    .role(Role.USER)
-                    .createdAt(LocalDateTime.now())
-                    .build();
+        if (user.isEmpty()) {
+            User newUser = createUserFromRequest(request);
 
-            var savedUser = userRepository.save(userModel);
+            var savedUser = userRepository.save(newUser);
             String link = sendConfirmationEmail(savedUser);
 
-            AuthenticationResponse response = new AuthenticationResponse(savedUser.getId(), savedUser.getEmail(), link);
+            AuthenticationResponse response = mapper.map(newUser, AuthenticationResponse.class);
+            response.setLink(link);
 
-            log.info("IN register - user: {} successfully registered", savedUser.getEmail());
-            return ResponseHandler.responseBuilder("User successfully registered. Please check your email for confirmation instructions.", HttpStatus.CREATED, response);
+            log.info("IN register - The user with email: {} has been successfully registered.", savedUser.getEmail());
+            return ResponseHandler.responseBuilder("The user has been registered successfully. Please check your email for instructions on how to confirm your registration.", HttpStatus.CREATED, response);
+        } else {
+            log.warn("IN register - Attempt to register an existing email: {}", request.getEmail());
+            throw new UserAlreadyExistsException("This email is already registered.");
         }
     }
 
     @Override
     public ResponseEntity<Object> login(EntryRequest request) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        Optional<User> user = userRepository.findByEmail(request.getEmail());
-
-        if (user.isEmpty()) {
-            log.warn("IN login - trying to log in with an email ({}) that is not registered", request.getEmail());
-            return ResponseHandler.responseBuilder("Invalid email address or password", HttpStatus.NOT_FOUND);
-        } else {
-            User userModel = user.get();
-            var jwtToken = jwtService.generateToken(userModel);
-            var refreshToken = jwtService.generateRefreshToken(userModel);
-            revokeAllUserTokens(userModel);
-
-            saveUserToken(userModel, jwtToken);
-            AuthenticationResponse response = new AuthenticationResponse(userModel.getId(), userModel.getEmail(), jwtToken, refreshToken);
-
-            log.info("IN login - user: {} successfully logged in with a token: {}", userModel.getEmail(), jwtToken);
-            return ResponseHandler.responseBuilder("User successfully logged in", HttpStatus.OK, response);
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        } catch (BadCredentialsException ex) {
+            log.warn("IN login - Attempt to log in with incorrect credentials to account with email: {}", request.getEmail());
+            throw new IncorrectLoginDetailsException("The email or password you have entered is incorrect.");
         }
+
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        AuthenticationResponse response = generateTokensAndProduceResponse(user);
+
+        log.info("IN login - User with email: {} has successfully logged in", user.getEmail());
+        return ResponseHandler.responseBuilder("The user has logged in successfully.", HttpStatus.OK, response);
+    }
+
+    private AuthenticationResponse generateTokensAndProduceResponse(User user) {
+        var jwtToken = jwtService.generateToken(user);
+        var refreshToken = jwtService.generateRefreshToken(user);
+        revokeAllUserTokens(user);
+
+        saveUserToken(user, jwtToken);
+        AuthenticationResponse response = mapper.map(user, AuthenticationResponse.class);
+        response.setAccessToken(jwtToken);
+        response.setRefreshToken(refreshToken);
+
+        return response;
+    }
+
+    private User createUserFromRequest(EntryRequest request) {
+        return User.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(Role.USER)
+                .createdAt(Instant.now())
+                .build();
     }
 
     private String sendConfirmationEmail(User user) {
@@ -102,11 +126,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String confirmationToken = UUID.randomUUID().toString();
         saveUserConfirmToken(user, confirmationToken, TokenAssignment.RESET_PASSWORD);
 
-        String confirmationLink = "http://localhost:8080/api/auth/change-password?email=" + user.getEmail() + "&token=" + confirmationToken;
-        String message = "You have made a password reset request. Please follow the link to confirm your action:\n" + confirmationLink + "\nIf you have not made any requests, just ignore this message.";
+        String message = "You have made a password reset request. Here is a token that can be used to reset your password:\n" + confirmationToken + "\nDo not disclose the token to anyone. If you have not made any requests, just ignore this message.";
 
         // mailSenderService.sendMail(user.getEmail(), "Account Confirmation", message);
-        return confirmationLink;
+        return confirmationToken;
     }
 
     private void saveUserConfirmToken(User user, String confirmationToken, TokenAssignment assignment) {
@@ -173,7 +196,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 var accessToken = jwtService.generateToken(user);
                 revokeAllUserTokens(user);
                 saveUserToken(user, accessToken);
-                var authResponse = new AuthenticationResponse(user.getId(), user.getEmail(), accessToken, refreshToken);
+
+                AuthenticationResponse authResponse = mapper.map(user, AuthenticationResponse.class);
+                authResponse.setAccessToken(accessToken);
+                authResponse.setRefreshToken(refreshToken);
+
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
             }
         }
@@ -187,79 +214,118 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             ConfirmToken tokenModel = optionalToken.get();
 
             LocalDateTime now = LocalDateTime.now();
-            if (tokenModel.getCreatedAt().plusMinutes(10).isBefore(now)) {
-                tokenModel.setExpired(true);
-                confirmTokenRepository.save(tokenModel);
-            }
+            handleTokenExpiration(tokenModel, now);
 
-            if (!tokenModel.expired && !tokenModel.revoked) {
+            if (!tokenModel.expired && !tokenModel.revoked && tokenModel.getTokenAssignment() == TokenAssignment.EMAIL_CONFIRMATION) {
                 User user = confirmTokenRepository.findUserByConfirmToken(tokenModel.getToken()).orElseThrow();
                 tokenModel.setExpired(true);
                 tokenModel.setRevoked(true);
                 user.setEnabled(true);
 
-                var jwtToken = jwtService.generateToken(user);
-                var refreshToken = jwtService.generateRefreshToken(user);
-                revokeAllUserTokens(user);
+                confirmTokenRepository.save(tokenModel);
+                userRepository.save(user);
 
-                saveUserToken(user, jwtToken);
+                AuthenticationResponse response = generateTokensAndProduceResponse(user);
 
-                AuthenticationResponse response = new AuthenticationResponse(user.getId(), user.getEmail(), jwtToken, refreshToken);
-
-                log.info("IN confirmEmail - email ({}) was successfully confirmed", user.getEmail());
-                return ResponseHandler.responseBuilder("Email confirmation successful", HttpStatus.OK, response);
+                log.info("IN confirmEmail - Email: {} was successfully confirmed", user.getEmail());
+                return ResponseHandler.responseBuilder("Email confirmation successful.", HttpStatus.OK, response);
             }
         }
-        log.info("IN confirmEmail - a non-existent token ({})  was used during email confirmation", token);
-        return ResponseHandler.responseBuilder("Time to confirm the link has expired or link does not exist", HttpStatus.NOT_FOUND);
+        log.warn("IN confirmEmail - An invalid token was used: {} during email confirmation", token);
+        throw new InvalidTokenException("The link has either expired or does not exist.");
+    }
+
+    private void handleTokenExpiration(ConfirmToken tokenModel, LocalDateTime now) {
+        if (tokenModel.getCreatedAt().plusMinutes(confirmTokenLifetime).isBefore(now)) {
+            tokenModel.setExpired(true);
+            confirmTokenRepository.save(tokenModel);
+        }
     }
 
     @Override
+    @Transactional
     public ResponseEntity<Object> resendEmailConfirm(String email) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
 
-        if(optionalUser.isPresent()) {
+        if (optionalUser.isPresent()) {
             User user = optionalUser.get();
 
             if (!user.isEnabled()) {
+                List<ConfirmToken> existingToken = confirmTokenRepository.findByUserAndTokenAssignment(user, TokenAssignment.EMAIL_CONFIRMATION);
+                if (existingToken.size() > 1) {
+                    log.warn("IN resetPasswordEmail - Attempting to resend confirmation email for user with email: {}", email);
+                    throw new MessageAlreadySentException("A confirmation email has already been sent to this email address. Please check your inbox. If the message has not arrived, try resending it in " + confirmTokenLifetime + " minutes.");
+                }
+
                 revokeAllUserConfirmTokens(user);
                 String link = sendConfirmationEmail(user);
 
-                AuthenticationResponse response = new AuthenticationResponse(user.getId(), user.getEmail(), link);
+                AuthenticationResponse response = mapper.map(user, AuthenticationResponse.class);
+                response.setLink(link);
 
-                log.info("IN resendEmailConfirm - successfully resend a confirmation to email: {}", email);
+                log.info("IN resendEmailConfirm - Successfully resend a confirmation to email: {}", email);
                 return ResponseHandler.responseBuilder("You have already confirmed your account.", HttpStatus.OK, response);
             } else {
-                log.warn("IN resendEmailConfirm - attempting to activate an already confirmed account with email: {}", email);
-                return ResponseHandler.responseBuilder("You have already confirmed your account.", HttpStatus.BAD_REQUEST);
+                log.warn("IN resendEmailConfirm - Attempting to activate an already confirmed account with email: {}", email);
+                throw new ConfirmationException("You have already confirmed your account.");
             }
         } else {
-            log.warn("IN resendEmailConfirm - attempting to resend account confirmation to an unregistered email: {}", email);
-            return ResponseHandler.responseBuilder("First, please register with your email address.", HttpStatus.NOT_FOUND);
+            log.warn("IN resendEmailConfirm - Attempting to resend account confirmation to an unregistered email: {}", email);
+            throw new UserNotFoundException("First, please register with your email address.");
         }
     }
 
     @Override
+    @Transactional
     public ResponseEntity<Object> resetPasswordEmail(String email) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
 
-        if(optionalUser.isPresent()) {
+        if (optionalUser.isPresent()) {
             User user = optionalUser.get();
-            String link = sendResetPasswordToEmail(user);
 
-            AuthenticationResponse response = new AuthenticationResponse(user.getId(), user.getEmail(), link);
+            List<ConfirmToken> existingToken = confirmTokenRepository.findByUserAndTokenAssignmentAndExpiredAndRevoked(user, TokenAssignment.RESET_PASSWORD, false, false);
+            if (!existingToken.isEmpty()) {
+                log.warn("IN resetPasswordEmail - Attempting to resend reset password email for user with email: {}", email);
+                throw new MessageAlreadySentException("A reset password email has already been sent to this email address. Please check your inbox. If the message has not arrived, try resending it in " + confirmTokenLifetime + " minutes.");
+            }
+            String token = sendResetPasswordToEmail(user);
 
-            log.info("IN resetPasswordEmail - successful sending of the password reset to email: {}", email);
-            return ResponseHandler.responseBuilder("Please check your email for instructions to reset your password.", HttpStatus.OK, response);
+            AuthenticationResponse response = mapper.map(user, AuthenticationResponse.class);
+            response.setConfirmToken(token);
+
+            log.info("IN resetPasswordEmail - The password reset has been successfully sent to email: {}", email);
+            return ResponseHandler.responseBuilder("Please check your email for instructions on how to reset your password.", HttpStatus.OK, response);
         } else {
-            log.warn("IN resetPasswordEmail - attempting to reset account password to an unregistered email: {}", email);
-            return ResponseHandler.responseBuilder("First, please register with your email address.", HttpStatus.NOT_FOUND);
+            log.warn("IN resetPasswordEmail - Attempting to reset the account password for an email: {} that is not registered", email);
+            throw new UserNotFoundException("First, please register with your email address.");
         }
     }
 
     @Override
-    public ResponseEntity<Object> changePassword(String email, String token) {
-        log.info("IN changePassword - the password was successfully changed on account with email: {}", email);
-        return ResponseHandler.responseBuilder("Password successfully reset. Now you can log in with your new password.", HttpStatus.OK);
+    @Transactional
+    public ResponseEntity<Object> changePassword(ResetPasswordRequest request) {
+        Optional<ConfirmToken> optionalToken = confirmTokenRepository.findByToken(request.getVerificationToken());
+
+        if (optionalToken.isPresent()) {
+            ConfirmToken confirmToken = optionalToken.get();
+
+            LocalDateTime now = LocalDateTime.now();
+            handleTokenExpiration(confirmToken, now);
+
+            if (!confirmToken.isExpired() && !confirmToken.isRevoked() && confirmToken.getTokenAssignment() == TokenAssignment.RESET_PASSWORD) {
+                User user = confirmToken.getUser();
+                user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+                userRepository.save(user);
+
+                confirmToken.setExpired(true);
+                confirmToken.setRevoked(true);
+                confirmTokenRepository.save(confirmToken);
+
+                log.info("IN changePassword - Password successfully changed for user with email: {}", user.getEmail());
+                return ResponseHandler.responseBuilder("Your password has been successfully reset. You can now log in using your new password.", HttpStatus.OK);
+            }
+        }
+        log.warn("IN changePassword - Invalid token or token assignment: {}", request.getVerificationToken());
+        throw new InvalidTokenException("Invalid or expired token for password reset.");
     }
 }

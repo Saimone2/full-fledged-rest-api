@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "tokens", schema = "public")
+@Table(name = "tokens")
 public class Token {
     @Id
     @GeneratedValue

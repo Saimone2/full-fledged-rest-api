@@ -1,0 +1,44 @@
+server:
+  port: 8081
+
+spring:
+  config:
+    activate:
+      on-profile: qa
+  application:
+    name: BVP-Software-task-QA
+  datasource:
+    url: jdbc:postgresql://${QA_HOST:qahost}:5432/user_api_qa
+    driver-class-name: org.postgresql.Driver
+    username: qa_user
+    password: qa_password
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 465
+    username: qa_username
+    password: qa_password
+    properties:
+      mail:
+        smtp:
+          auth: true
+
+application:
+  security:
+    jwt:
+      secret-key: 182b9e058ec60b5d271a0b77a697c5ace98ced588f6c6cdd13bc303f175274b5
+      expiration: 86400000
+      refresh-token:
+        expiration: 604800000
+    confirm-token:
+      lifetime: 10
+  admin:
+    email: adminqa@gmail.com
+    password: qa_admin123

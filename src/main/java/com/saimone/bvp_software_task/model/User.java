@@ -1,14 +1,12 @@
 package com.saimone.bvp_software_task.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -18,7 +16,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "users", schema = "public")
+@Table(name = "users")
+@ToString(exclude = "password")
 public class User implements UserDetails {
     @Id
     @GeneratedValue
@@ -38,10 +37,10 @@ public class User implements UserDetails {
     private List<Token> tokens;
 
     @Column(name = "enabled", nullable = false)
-    private boolean isEnabled;
+    private boolean isEnabled = false;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "confirmation_tokens", schema = "public")
+@Table(name = "confirmation_tokens")
 public class ConfirmToken {
     @Id
     @GeneratedValue

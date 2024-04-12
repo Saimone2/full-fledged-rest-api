@@ -1,26 +1,30 @@
+server:
+  port: 8080
+
 spring:
+  config:
+    activate:
+      on-profile: local
   application:
     name: BVP-Software-task
   datasource:
-    url: jdbc:postgresql://localhost:5432/user_api
+    url: jdbc:postgresql://${LOCALHOST:localhost}:5432/user_api
     driver-class-name: org.postgresql.Driver
     username: postgres
     password: root
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
+    open-in-view: false
     show-sql: false
     properties:
       hibernate:
         format_sql: true
-    database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-
   mail:
-    host: smtp.ukr.net
+    host: smtp.gmail.com
     port: 465
-    username: // your username
-    password: // your password
+    username: local_username
+    password: local_password
     properties:
       mail:
         smtp:
@@ -33,7 +37,8 @@ application:
       expiration: 86400000
       refresh-token:
         expiration: 604800000
-
+    confirm-token:
+      lifetime: 10
   admin:
     email: admin@gmail.com
     password: adminadmin123

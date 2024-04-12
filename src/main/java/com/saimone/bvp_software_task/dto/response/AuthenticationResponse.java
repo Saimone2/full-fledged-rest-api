@@ -4,9 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 @Data
-@NoArgsConstructor
+@RequiredArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class AuthenticationResponse {
     @JsonProperty("id")
@@ -19,17 +20,6 @@ public class AuthenticationResponse {
     private String refreshToken;
     @JsonProperty("confirmation_link")
     private String link;
-
-    public AuthenticationResponse(Long id, String email, String accessToken, String refreshToken) {
-        this.id = id;
-        this.email = email;
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-    }
-
-    public AuthenticationResponse(Long id, String email, String link) {
-        this.id = id;
-        this.email = email;
-        this.link = link;
-    }
+    @JsonProperty("confirmation_token")
+    private String confirmToken;
 }

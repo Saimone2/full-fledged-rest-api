@@ -1,6 +1,7 @@
 package com.saimone.bvp_software_task.controller;
 
 import com.saimone.bvp_software_task.dto.request.EntryRequest;
+import com.saimone.bvp_software_task.dto.request.ResetPasswordRequest;
 import com.saimone.bvp_software_task.handler.ValidationHandler;
 import com.saimone.bvp_software_task.service.impl.AuthenticationServiceImpl;
 import jakarta.validation.Valid;
@@ -49,10 +50,10 @@ public class AuthenticationController {
     }
 
     @PostMapping("/change-password")
-    public ResponseEntity<Object> changePassword(
-            @RequestParam(name="email") String email,
-            @RequestParam(name="token") String token
-    ) {
-        return authenticationService.changePassword(email, token);
+    public ResponseEntity<Object> changePassword(@RequestBody ResetPasswordRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            return ValidationHandler.handleValidationErrors(bindingResult);
+        }
+        return authenticationService.changePassword(request);
     }
 }

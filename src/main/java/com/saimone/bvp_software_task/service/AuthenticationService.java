@@ -1,6 +1,7 @@
 package com.saimone.bvp_software_task.service;
 
 import com.saimone.bvp_software_task.dto.request.EntryRequest;
+import com.saimone.bvp_software_task.dto.request.ResetPasswordRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
@@ -14,5 +15,5 @@ public interface AuthenticationService {
     ResponseEntity<Object> confirmEmail(String token);
     ResponseEntity<Object> resendEmailConfirm(String email);
     ResponseEntity<Object> resetPasswordEmail(String email);
-    ResponseEntity<Object> changePassword(String email, String token);
+    ResponseEntity<Object> changePassword(ResetPasswordRequest request);
 }

@@ -1,6 +1,7 @@
 package com.saimone.bvp_software_task.repository;
 
 import com.saimone.bvp_software_task.model.ConfirmToken;
+import com.saimone.bvp_software_task.model.TokenAssignment;
 import com.saimone.bvp_software_task.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +22,8 @@ public interface ConfirmTokenRepository extends JpaRepository<ConfirmToken, Long
       where u.id = :id and (t.expired = false or t.revoked = false)\s
       """)
     List<ConfirmToken> findAllValidConfirmTokenByUser(Long id);
+
+    List<ConfirmToken> findByUserAndTokenAssignmentAndExpiredAndRevoked(User user, TokenAssignment tokenAssignment, Boolean expired, Boolean revoked);
+
+    List<ConfirmToken> findByUserAndTokenAssignment(User user, TokenAssignment tokenAssignment);
 }

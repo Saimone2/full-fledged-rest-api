@@ -1,8 +1,9 @@
 package com.saimone.bvp_software_task.config;
 
-import com.saimone.bvp_software_task.exception.UsernameNotFoundException;
+import com.saimone.bvp_software_task.exception.IncorrectLoginDetailsException;
 import com.saimone.bvp_software_task.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
@@ -22,7 +24,7 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("The email or password you’ve entered is incorrect"));
+                .orElseThrow(() -> new IncorrectLoginDetailsException("The email or password you have entered is incorrect."));
     }
 
     @Bean
@@ -33,6 +35,11 @@ public class ApplicationConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
     }
 
     @Bean
