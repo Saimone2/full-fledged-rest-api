@@ -13,10 +13,16 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>BVP-Software-task</name>
     <description>BVP-Software-task</description>
+
     <properties>
         <java.version>17</java.version>
-        <org.springdoc.openapi.version>2.4.0</org.springdoc.openapi.version>
+        <openapi.version>2.4.0</openapi.version>
+        <flywaydb.version>9.22.3</flywaydb.version>
+        <jsonwebtoken.version>0.11.5</jsonwebtoken.version>
+        <modelmapper.version>3.2.0</modelmapper.version>
+        <postgres.version>42.7.3</postgres.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -41,6 +47,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
+            <version>${flywaydb.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -51,6 +58,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <version>${postgres.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -71,27 +79,27 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>${org.springdoc.openapi.version}</version>
+            <version>${openapi.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.11.5</version>
+            <version>${jsonwebtoken.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.11.5</version>
+            <version>${jsonwebtoken.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.11.5</version>
+            <version>${jsonwebtoken.version}</version>
         </dependency>
         <dependency>
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
-            <version>3.2.0</version>
+            <version>${modelmapper.version}</version>
         </dependency>
     </dependencies>
 
@@ -107,6 +115,9 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <profiles>
+                        <profile>local</profile>
+                    </profiles>
                 </configuration>
             </plugin>
         </plugins>
@@ -150,4 +161,5 @@
             </properties>
         </profile>
     </profiles>
+
 </project>

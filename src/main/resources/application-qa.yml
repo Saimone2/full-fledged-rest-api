@@ -8,7 +8,7 @@ spring:
   application:
     name: BVP-Software-task-QA
   datasource:
-    url: jdbc:postgresql://${QA_HOST:qahost}:5432/user_api_qa
+    url: jdbc:postgresql://postgresql:5432/user_api
     driver-class-name: org.postgresql.Driver
     username: qa_user
     password: qa_password

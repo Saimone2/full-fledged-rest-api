@@ -8,7 +8,7 @@ spring:
   application:
     name: BVP-Software-task-Prod
   datasource:
-    url: jdbc:postgresql://${HOST:dbhost}:5432/user_api_prod
+    url: jdbc:postgresql://postgresql:5432/user_api
     driver-class-name: org.postgresql.Driver
     username: prod_user
     password: prod_password

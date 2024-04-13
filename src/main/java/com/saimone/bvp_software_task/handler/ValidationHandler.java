@@ -18,6 +18,6 @@ public class ValidationHandler {
         for (FieldError error : errors) {
             errorMap.put(error.getField(), error.getDefaultMessage());
         }
-        return ResponseHandler.responseBuilder(errorMap.values().stream().findFirst().orElseThrow(), HttpStatus.FORBIDDEN);
+        return ResponseHandler.responseBuilder(errorMap.values().stream().findFirst().orElseThrow(), HttpStatus.NOT_ACCEPTABLE);
     }
 }

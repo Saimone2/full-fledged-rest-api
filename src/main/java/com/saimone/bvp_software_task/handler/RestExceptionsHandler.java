@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class RestExceptionsHandler {
     @ExceptionHandler(IncorrectLoginDetailsException.class)
     public ResponseEntity<Object> handleUsernameNotFoundException(IncorrectLoginDetailsException ex) {
-        return ResponseHandler.responseBuilder(ex.getMessage(), HttpStatus.FORBIDDEN);
+        return ResponseHandler.responseBuilder(ex.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(ParameterOutOfBoundsException.class)
@@ -21,7 +21,7 @@ public class RestExceptionsHandler {
 
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<Object> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
-        return ResponseHandler.responseBuilder(ex.getMessage(), HttpStatus.FORBIDDEN);
+        return ResponseHandler.responseBuilder(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(ConfirmationException.class)
