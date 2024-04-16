@@ -43,4 +43,9 @@ public class RestExceptionsHandler {
     public ResponseEntity<Object> handleMessageAlreadySentException(MessageAlreadySentException ex) {
         return ResponseHandler.responseBuilder(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
+
+    @ExceptionHandler(UnsentMessageException.class)
+    public ResponseEntity<Object> handleUnsentMessageException(UnsentMessageException ex) {
+        return ResponseHandler.responseBuilder(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

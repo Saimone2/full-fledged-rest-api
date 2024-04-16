@@ -15,7 +15,9 @@ import com.saimone.bvp_software_task.service.MailSenderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,7 +32,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,6 +51,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final TokenRepository tokenRepository;
     private final ConfirmTokenRepository confirmTokenRepository;
 
+    @Getter
+    @Setter
     @Value("${application.security.confirm-token.lifetime}")
     private int confirmTokenLifetime;
 
@@ -114,22 +117,24 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private String sendConfirmationEmail(User user) {
         String confirmationToken = UUID.randomUUID().toString();
-        saveUserConfirmToken(user, confirmationToken, TokenAssignment.EMAIL_CONFIRMATION);
 
         String confirmationLink = "http://localhost:8080/api/auth/email-confirm/" + confirmationToken;
         String message = "Please click the link below to confirm your account:\n" + confirmationLink + "\nIf you didn't register an account, just ignore this message.";
 
         mailSenderService.sendMail(user.getEmail(), "Account Confirmation", message);
+        saveUserConfirmToken(user, confirmationToken, TokenAssignment.EMAIL_CONFIRMATION);
+
         return confirmationLink;
     }
 
-    private String sendResetPasswordToEmail(User user) {
+    protected String sendResetPasswordToEmail(User user) {
         String confirmationToken = UUID.randomUUID().toString();
-        saveUserConfirmToken(user, confirmationToken, TokenAssignment.RESET_PASSWORD);
 
         String message = "You have made a password reset request. Here is a token that can be used to reset your password:\n" + confirmationToken + "\nDo not disclose the token to anyone. If you have not made any requests, just ignore this message.";
 
         mailSenderService.sendMail(user.getEmail(), "Account Confirmation", message);
+        saveUserConfirmToken(user, confirmationToken, TokenAssignment.RESET_PASSWORD);
+
         return confirmationToken;
     }
 
@@ -139,7 +144,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .token(confirmationToken)
                 .expired(false)
                 .revoked(false)
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .tokenAssignment(assignment)
                 .build();
         confirmTokenRepository.save(token);
@@ -214,8 +219,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (optionalToken.isPresent()) {
             ConfirmToken tokenModel = optionalToken.get();
 
-            LocalDateTime now = LocalDateTime.now();
-            handleTokenExpiration(tokenModel, now);
+            handleTokenExpiration(tokenModel, Instant.now());
 
             if (!tokenModel.expired && !tokenModel.revoked && tokenModel.getTokenAssignment() == TokenAssignment.EMAIL_CONFIRMATION) {
                 User user = confirmTokenRepository.findUserByConfirmToken(tokenModel.getToken()).orElseThrow();
@@ -236,8 +240,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         throw new InvalidTokenException("The link has either expired or does not exist.");
     }
 
-    private void handleTokenExpiration(ConfirmToken tokenModel, LocalDateTime now) {
-        if (tokenModel.getCreatedAt().plusMinutes(confirmTokenLifetime).isBefore(now)) {
+    void handleTokenExpiration(ConfirmToken tokenModel, Instant now) {
+        if (tokenModel.getCreatedAt().plusMillis(confirmTokenLifetime * 60 * 1000L).isBefore(now)) {
             tokenModel.setExpired(true);
             confirmTokenRepository.save(tokenModel);
         }
@@ -309,9 +313,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (optionalToken.isPresent()) {
             ConfirmToken confirmToken = optionalToken.get();
-
-            LocalDateTime now = LocalDateTime.now();
-            handleTokenExpiration(confirmToken, now);
+            handleTokenExpiration(confirmToken, Instant.now());
 
             if (!confirmToken.isExpired() && !confirmToken.isRevoked() && confirmToken.getTokenAssignment() == TokenAssignment.RESET_PASSWORD) {
                 User user = confirmToken.getUser();

@@ -1,15 +1,23 @@
 package com.saimone.bvp_software_task.service;
 
+import com.saimone.bvp_software_task.exception.UnsentMessageException;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class MailSenderService {
+    @Getter
+    @Setter
     @Value("${spring.mail.username}")
     String sendFrom;
 
@@ -22,6 +30,11 @@ public class MailSenderService {
         mailMessage.setSubject(subject);
         mailMessage.setText(message);
 
-        javaMailSender.send(mailMessage);
+        try {
+            javaMailSender.send(mailMessage);
+        } catch (MailException ex) {
+            log.error("IN sendMail - The message was not sent to the email: {}", emailTo);
+            throw new UnsentMessageException("There was an error when sending an email. Please try again a little later.");
+        }
     }
 }

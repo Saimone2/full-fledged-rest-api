@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 
 @Data
@@ -18,13 +18,16 @@ import java.time.LocalDateTime;
 public class ConfirmToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     public Long id;
 
     @Column(name = "token")
     public String token;
 
+    @Column(name = "revoked")
     public boolean revoked;
 
+    @Column(name = "expired")
     public boolean expired;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -32,7 +35,7 @@ public class ConfirmToken {
     public User user;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "assignment")

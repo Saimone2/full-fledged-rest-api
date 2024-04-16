@@ -18,6 +18,9 @@ This Spring Boot project serves as a backend for user authentication and managem
 It provides endpoints for user registration, login and user management functionalities.
 
 ## Endpoints
+OpenAPI documentation is available for you to read and test the endpoints provided in the link:  
+`http://localhost:8080/swagger-ui/index.html`
+
 ### User Management
 
 ---

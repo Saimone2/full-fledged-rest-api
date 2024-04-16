@@ -31,11 +31,13 @@ public class User implements UserDetails {
     private String password;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
     private Role role;
 
     @OneToMany(mappedBy = "user")
     private List<Token> tokens;
 
+    @Builder.Default
     @Column(name = "enabled", nullable = false)
     private boolean isEnabled = false;
 

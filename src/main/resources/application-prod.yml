@@ -6,12 +6,12 @@ spring:
     activate:
       on-profile: prod
   application:
-    name: BVP-Software-task-Prod
+    name: BVP-Software-task
   datasource:
     url: jdbc:postgresql://postgresql:5432/user_api
     driver-class-name: org.postgresql.Driver
-    username: prod_user
-    password: prod_password
+    username: postgres
+    password: root
   jpa:
     hibernate:
       ddl-auto: none
@@ -41,3 +41,12 @@ application:
         expiration: 604800000
     confirm-token:
       lifetime: 10
+
+logging:
+  level:
+    root=WARN:
+  file:
+    name: bvp-software-task.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB

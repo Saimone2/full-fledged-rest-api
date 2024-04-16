@@ -41,6 +41,12 @@ application:
         expiration: 604800000
     confirm-token:
       lifetime: 10
-  admin:
-    email: adminqa@gmail.com
-    password: qa_admin123
+
+logging:
+  level:
+    root=WARN:
+  file:
+    name: bvp-software-task.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
