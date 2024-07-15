@@ -6,7 +6,7 @@ spring:
     activate:
       on-profile: prod
   application:
-    name: BVP-Software-task
+    name: Full-Fledged-Rest-API
   datasource:
     url: jdbc:postgresql://postgresql:5432/user_api
     driver-class-name: org.postgresql.Driver
@@ -23,8 +23,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: prod@gmail.com
-    password: pass123
+    username: // ENTER YOUR MAIL ADDRESS
+    password: // ENTER YOUR PASSWORD
     properties:
       mail:
         smtp:
@@ -46,7 +46,7 @@ logging:
   level:
     root=WARN:
   file:
-    name: bvp-software-task.log
+    name: logging.log
   logback:
     rollingpolicy:
       max-file-size: 10MB

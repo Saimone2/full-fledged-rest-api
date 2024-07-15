@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    container_name: bvp-task-application
+    container_name: full-fledged-rest-api
     image: 'docker-spring-boot-postgres:latest'
     build:
       context: ./

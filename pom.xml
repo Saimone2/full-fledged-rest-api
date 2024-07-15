@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.saimone</groupId>
-    <artifactId>BVP-Software-task</artifactId>
+    <artifactId>Full-Fledged-Rest-API</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>BVP-Software-task</name>
-    <description>BVP-Software-task</description>
+    <name>Full-Fledged-Rest-API</name>
+    <description>Full-Fledged-Rest-API</description>
 
     <properties>
         <java.version>17</java.version>
@@ -128,38 +128,4 @@
             </resource>
         </resources>
     </build>
-
-    <profiles>
-        <profile>
-            <id>local</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <build.profile.id>local</build.profile.id>
-                <profile.activate>local</profile.activate>
-            </properties>
-        </profile>
-        <profile>
-            <id>qa</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <build.profile.id>qa</build.profile.id>
-                <profile.activate>qa</profile.activate>
-            </properties>
-        </profile>
-        <profile>
-            <id>prod</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <build.profile.id>prod</build.profile.id>
-                <profile.activate>prod</profile.activate>
-            </properties>
-        </profile>
-    </profiles>
-
 </project>

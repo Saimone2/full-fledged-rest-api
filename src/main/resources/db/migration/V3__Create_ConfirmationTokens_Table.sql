@@ -5,6 +5,7 @@ CREATE TABLE confirmation_tokens (
      expired BOOLEAN,
      user_id BIGINT,
      created_at TIMESTAMP,
+     updated_at TIMESTAMP,
      assignment VARCHAR(255),
      FOREIGN KEY (user_id) REFERENCES users(id)
 );
