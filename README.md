@@ -1,5 +1,4 @@
-# BVP-Software-task
-###### REST API with JWT authentication
+# Full-Fledged REST API with JWT authentication
 
 ### Prerequisites
 - JDK 17
@@ -119,4 +118,3 @@ email (str): Email address to send reset password email.
 <b>Response:</b> Returns the result of the password change process.
 
 ---
-<h3>I am grateful to BVP Software for providing this task. Look forward to new challenges and discoveries. 🚀🌟</h3>
